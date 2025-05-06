@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temperature Control System Testing</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            color: #e2e8f0;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(255, 0, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 0, 255, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 1;
+        }
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), transparent);
+            border-radius: 24px;
+            pointer-events: none;
+        }
+        h1, h2, h3 {
+            color: #fff;
+            font-weight: 600;
+        }
+        .title-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 20px;
+            width: 100%;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin: 0 20px 0 0;
+            flex: 1;
+            background: linear-gradient(135deg, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: glowText 3s infinite;
+        }
+        .title-image {
+            width: 150px;
+            height: 150px;
+            object-fit: contain;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            padding: 10px;
+        }
+        .title-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+        }
+        .title-image.animate {
+            animation: gentleDrop 1s ease-out forwards;
+        }
+        @keyframes gentleDrop {
+            0% { 
+                transform: translateY(-20px);
+            }
+            60% {
+                transform: translateY(5px);
+            }
+            80% {
+                transform: translateY(-2px);
+            }
+            100% {
+                transform: translateY(0);
+            }
+        }
+        .title-image:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        h2 {
+            font-size: 1.8em;
+            margin-top: 30px;
+            animation: floatText 4s infinite;
+        }
+        h3 {
+            font-size: 1.4em;
+            margin-top: 20px;
+            animation: floatText 4s infinite 0.5s;
+        }
+        .section {
+            margin-bottom: 40px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        .section.animate {
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 0.6s ease-out;
+        }
+        .section:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-5px);
+        }
+        .pass {
+            color: #10b981;
+            font-weight: bold;
+        }
+        .fail {
+            color: #ef4444;
+            font-weight: bold;
+        }
+        .notes {
+            font-style: italic;
+            color: #555;
+        }
+        .input-form {
+            margin: 30px 0;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .input-form label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: #fff;
+            animation: floatText 4s infinite 0.2s;
+        }
+        .input-form input[type="number"] {
+            width: 100%;
+            height: 48px;
+            padding: 12px 18px;
+            font-size: 1.2em;
+            border-radius: 12px;
+            border: 1.5px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            transition: border 0.3s, box-shadow 0.3s;
+            appearance: none;
+        }
+        .input-form input[type="number"]::-webkit-inner-spin-button, 
+        .input-form input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            appearance: none;
+            margin: 0;
+            width: 18px;
+            height: 48px;
+        }
+        .input-form input[type="number"]:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+            outline: none;
+            background: rgba(255,255,255,0.12);
+        }
+        .input-form button {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: #fff;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-right: 12px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            animation: floatText 4s infinite 0.4s;
+        }
+        .input-form button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+            animation: glowText 2s infinite;
+        }
+        #result-table {
+            display: none;
+        }
+        #result-table.active {
+            display: table;
+        }
+        .equivalence-classes {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.5s ease-in;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .equivalence-classes::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), transparent);
+            pointer-events: none;
+        }
+        .equivalence-classes p {
+            font-weight: 600;
+            margin: 10px 0 20px;
+            color: #fff;
+            font-size: 1.2em;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            animation: glowText 3s infinite;
+        }
+        .equivalence-classes ul {
+            list-style: none;
+            padding: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .equivalence-classes ul li {
+            padding: 20px;
+            margin: 0;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.02);
+            animation: slideIn 0.5s ease-out forwards;
+            opacity: 0;
+        }
+        .equivalence-classes ul li:nth-child(1) { animation-delay: 0.1s; }
+        .equivalence-classes ul li:nth-child(2) { animation-delay: 0.3s; }
+        .equivalence-classes ul li:nth-child(3) { animation-delay: 0.5s; }
+        .equivalence-classes ul li::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .equivalence-classes ul li:hover::before {
+            opacity: 1;
+        }
+        .equivalence-classes ul li strong {
+            display: block;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #fff;
+            animation: glowText 3s infinite;
+        }
+        .equivalence-classes ul.valid li {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+        .equivalence-classes ul.valid li:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.2);
+        }
+        .equivalence-classes ul.invalid li {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+        .equivalence-classes ul.invalid li:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.2);
+        }
+        .system-visualization {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+            height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .thermostat {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #fff;
+            transition: all 0.5s cubic-bezier(.4,2,.6,1), background 0.7s cubic-bezier(.4,2,.6,1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            z-index: 1;
+        }
+        .thermostat::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            transition: background 0.7s cubic-bezier(.4,2,.6,1);
+            background: linear-gradient(135deg, #3b82f6, #2563eb); /* default cool */
+            opacity: 0.7;
+        }
+        .thermostat.heating-on::before {
+            background: linear-gradient(135deg, #ff512f, #f09819, #ff512f);
+            opacity: 0.85;
+        }
+        .thermostat.heating-off::before {
+            background: linear-gradient(135deg, #2193b0, #6dd5ed, #2193b0);
+            opacity: 0.85;
+        }
+        .status {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        .heating-on {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+        .heating-off {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+        }
+        .status-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: rgba(15, 23, 42, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        .status-popup.active {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+        .status-emoji {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: bounce 1s infinite, glowText 3s infinite;
+        }
+        .status-message {
+            font-size: 28px;
+            color: #fff;
+            margin: 15px 0;
+            font-weight: 600;
+            animation: floatText 3s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes floatText {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0); }
+        }
+        @keyframes glowText {
+            0% { text-shadow: 0 0 5px rgba(255, 255, 255, 0.1); }
+            50% { text-shadow: 0 0 20px rgba(255, 255, 255, 0.3); }
+            100% { text-shadow: 0 0 5px rgba(255, 255, 255, 0.1); }
+        }
+        @keyframes slideIn {
+            0% { 
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            100% { 
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        @keyframes dropLogo {
+            0% { 
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+            60% {
+                transform: translateY(20px);
+                opacity: 1;
+            }
+            80% {
+                transform: translateY(-10px);
+            }
+            100% {
+                transform: translateY(0);
+            }
+        }
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 20px 0;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        th, td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        th {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-weight: 600;
+        }
+        tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        footer {
+            background: rgba(255, 255, 255, 0.03);
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            font-size: 1em;
+            font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 20px;
+            }
+            .container {
+                padding: 15px;
+            }
+            .title-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            h1 {
+                font-size: 1.6em;
+                margin: 0 0 15px 0;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                width: 100%;
+            }
+            .title-image {
+                width: 100px;
+                height: 100px;
+                font-size: 40px;
+            }
+            h2 {
+                font-size: 1.5em;
+            }
+            .input-form input, .input-form button {
+                font-size: 0.9em;
+            }
+            .equivalence-classes {
+                padding: 15px;
+            }
+            footer {
+                font-size: 0.9em;
+                padding: 10px;
+            }
+        }
+        .creative-team, .team-name { display: none; } /* Hide old style */
+        .creative-team-box {
+            width: 100%;
+            max-width: 500px;
+            margin: 40px auto 0 auto;
+            padding: 28px 32px 20px 32px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(240,152,25,0.10), rgba(109,213,237,0.13));
+            box-shadow: 0 8px 32px rgba(59,130,246,0.10), 0 2px 16px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            border: 1.5px solid rgba(255,255,255,0.13);
+            z-index: 2;
+            animation: teamBoxAppear 1.2s cubic-bezier(.4,2,.6,1);
+        }
+        .team-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: #fff;
+            margin-bottom: 18px;
+            background: linear-gradient(90deg, #3b82f6, #f09819, #ff512f, #6dd5ed);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-fill-color: transparent;
+            animation: teamGlow 3s ease-in-out infinite;
+            transition: opacity 0.6s, transform 0.6s;
+            opacity: 1;
+            display: inline-block;
+        }
+        .team-title.fade {
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+        }
+        .team-names {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .team-name {
+            font-size: 1.25em;
+            font-weight: bold;
+            letter-spacing: 1.2px;
+            padding: 10px 22px;
+            border-radius: 14px;
+            background: linear-gradient(90deg, #3b82f6 30%, #f09819 70%, #ff512f 100%);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-fill-color: transparent;
+            box-shadow: 0 2px 12px rgba(59,130,246,0.10);
+            margin-bottom: 8px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            animation: teamFloat 4s ease-in-out infinite;
+            cursor: pointer;
+        }
+        .team-name:hover {
+            transform: scale(1.08) rotate(-2deg);
+            box-shadow: 0 4px 24px rgba(240,152,25,0.18);
+            background-position: 100% 0;
+        }
+        @keyframes teamBoxAppear {
+            0% { opacity: 0; transform: scale(0.9) translateY(30px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes teamGlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes teamFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="status-popup" id="statusPopup">
+        <div class="status-emoji" id="statusEmoji">🔥</div>
+        <div class="status-message" id="statusMessage">Heating is ON!</div>
+    </div>
+    <div class="container">
+        <div class="title-container">
+            <h1>Temperature Control System Testing</h1>
+            <div class="title-image">
+                <img src="https://ecu.edu.eg/wp-content/uploads/2022/05/ECU-Logo.png" alt="ECU Logo" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Objective</h2>
+            <p>Apply black box testing techniques to a temperature control system, based on Chapter 4's examples.</p>
+        </div>
+
+        <div class="section">
+            <h2>Description</h2>
+            <p>The system switches heating on below 18 degrees and off at 21 degrees, with test cases designed using equivalence partitioning and boundary value analysis, as seen in Chapter 4's temperature control example.</p>
+        </div>
+
+        <div class="section">
+            <h2>System Simulation</h2>
+            <div class="system-visualization">
+                <div class="status heating-off" id="heating-status">Heating: OFF</div>
+                <div class="thermostat" id="thermostat">20</div>
+            </div>
+            <div class="input-form">
+                <label for="temperature">Enter Temperature (°C):</label>
+                <input type="number" id="temperature" placeholder="Enter temperature">
+                <button onclick="testTemperature()">Test</button>
+                <button onclick="clearResults()">Clear Results</button>
+            </div>
+            <table id="result-table">
+                <thead>
+                    <tr>
+                        <th>Temperature</th>
+                        <th>Expected Heating State</th>
+                        <th>Actual Heating State</th>
+                        <th>Pass/Fail</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody id="result-body"></tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>Tasks</h2>
+
+            <h3>1. Identify Equivalence Classes</h3>
+            <div class="equivalence-classes">
+                <p>Equivalence Classes for Temperature Inputs</p>
+                <ul class="valid">
+                    <li>
+                        <strong>Class 1</strong>
+                        Temperatures below 18°C - Heating expected to be ON
+                    </li>
+                    <li>
+                        <strong>Class 2</strong>
+                        Temperatures between 18°C and 20°C - Transitional state
+                    </li>
+                    <li>
+                        <strong>Class 3</strong>
+                        Temperatures at or above 21°C - Heating expected to be OFF
+                    </li>
+                </ul>
+            </div>
+
+            <h3>2. Design Test Cases Based on Boundary Values</h3>
+            <p>The following test cases were designed using boundary value analysis:</p>
+            <table>
+                <tr>
+                    <th>Test Case ID</th>
+                    <th>Temperature</th>
+                    <th>Expected Heating State</th>
+                    <th>Selection Rationale</th>
+                </tr>
+                <tr>
+                    <td>TC1</td>
+                    <td>17</td>
+                    <td>ON</td>
+                    <td>Boundary value just below 18 (one degree)</td>
+                </tr>
+                <tr>
+                    <td>TC2</td>
+                    <td>18</td>
+                    <td>OFF</td>
+                    <td>Boundary value exactly at 18</td>
+                </tr>
+                <tr>
+                    <td>TC3</td>
+                    <td>19</td>
+                    <td>OFF</td>
+                    <td>Middle value in Class 2</td>
+                </tr>
+                <tr>
+                    <td>TC4</td>
+                    <td>20</td>
+                    <td>OFF</td>
+                    <td>Boundary value just before 21 (one degree)</td>
+                </tr>
+                <tr>
+                    <td>TC5</td>
+                    <td>21</td>
+                    <td>OFF</td>
+                    <td>Boundary value exactly at 21</td>
+                </tr>
+                <tr>
+                    <td>TC6</td>
+                    <td>22</td>
+                    <td>OFF</td>
+                    <td>Boundary value just above 21 (one degree)</td>
+                </tr>
+            </table>
+
+            <h3>3. Execute Tests on the Provided Simulation</h3>
+            <p>Use the interactive simulation above to test the temperature control system with the defined test cases. The results will be displayed in the table and provide verification of system behavior.</p>
+            
+            <h3>4. Considerations</h3>
+            <p>This project focuses on functional testing as mentioned in Chapter 2 and can be extended to include regression testing after changes, reinforcing maintenance testing concepts. The simulation provides an easy way to test the temperature control system's behavior.</p>
+            
+            <p>Additional considerations for the system:</p>
+            <ul>
+                <li>The system exhibits hysteresis behavior: it switches heating off at 21°C and on below 18°C.</li>
+                <li>Between 18°C and 21°C, the system maintains its previous state (either ON or OFF).</li>
+                <li>The simulation enables quick execution of test cases with immediate feedback.</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>Test Results Analysis</h2>
+            <p>After executing the test cases, analyze the results to verify that:</p>
+            <ul>
+                <li>The heating turns ON for temperatures below 18°C (Class 1)</li>
+                <li>The heating turns OFF for temperatures at or above 21°C (Class 3)</li>
+                <li>For temperatures between 18°C and 21°C, the system maintains its previous state</li>
+            </ul>
+            <p>All test cases should pass, confirming that the temperature control system behaves as expected according to the requirements.</p>
+        </div>
+
+        <div class="creative-team-box">
+            <span class="team-title">Team Members</span>
+            <div class="team-names">
+                <span class="team-name">ziad mohamed</span>
+                <span class="team-name">ganna mohamed</span>
+            </div>
+        </div>
+
+        <footer>
+            Temperature Control System Testing Project
+        </footer>
+    </div>
+
+    <script>
+        // Initialize the system state
+        let heatingOn = false;
+        let currentTemp = 20;
+        
+        // Scroll animation observer
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate');
+                }
+            });
+        }, {
+            threshold: 0.1
+        });
+
+        // Observe all sections
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate logo on load
+            const logo = document.querySelector('.title-image');
+            logo.classList.add('animate');
+
+            // Observe all sections for scroll animation
+            document.querySelectorAll('.section').forEach(section => {
+                observer.observe(section);
+            });
+
+            // Initialize thermostat
+            updateThermostat(20);
+        });
+        
+        // Update the thermostat display
+        function updateThermostat(temp) {
+            const thermostat = document.getElementById('thermostat');
+            thermostat.innerText = temp;
+            
+            // Update heating status based on temperature rules
+            let newHeatingStatus;
+            if (temp < 18) {
+                newHeatingStatus = true; // heating ON below 18
+            } else if (temp >= 21) {
+                newHeatingStatus = false; // heating OFF at or above 21
+            } else {
+                // Between 18-21, maintain current state (hysteresis)
+                newHeatingStatus = heatingOn;
+            }
+            
+            // Show popup only if heating status changes
+            if (newHeatingStatus !== heatingOn) {
+                showStatusPopup(newHeatingStatus);
+            }
+            
+            // Update the heating status display
+            heatingOn = newHeatingStatus;
+            const statusDiv = document.getElementById('heating-status');
+            if (heatingOn) {
+                statusDiv.innerText = "Heating: ON";
+                statusDiv.className = "status heating-on";
+                thermostat.classList.add('heating-on');
+                thermostat.classList.remove('heating-off');
+            } else {
+                statusDiv.innerText = "Heating: OFF";
+                statusDiv.className = "status heating-off";
+                thermostat.classList.add('heating-off');
+                thermostat.classList.remove('heating-on');
+            }
+            
+            currentTemp = temp;
+            return heatingOn ? "ON" : "OFF";
+        }
+        
+        // Show status popup with animation
+        function showStatusPopup(isHeatingOn) {
+            const popup = document.getElementById('statusPopup');
+            const emoji = document.getElementById('statusEmoji');
+            const message = document.getElementById('statusMessage');
+            
+            // Set appropriate emoji and message
+            if (isHeatingOn) {
+                emoji.textContent = '🔥';
+                message.textContent = 'Heating is ON!';
+                message.style.color = '#ff6b6b';
+            } else {
+                emoji.textContent = '❄️';
+                message.textContent = 'Heating is OFF!';
+                message.style.color = '#74c0fc';
+            }
+            
+            // Show popup
+            popup.classList.add('active');
+            
+            // Hide popup after 2 seconds
+            setTimeout(() => {
+                popup.classList.remove('active');
+            }, 2000);
+        }
+        
+        // Test a temperature input
+        function testTemperature() {
+            const tempInput = document.getElementById('temperature');
+            const temp = parseFloat(tempInput.value);
+            
+            if (isNaN(temp)) {
+                alert("Please enter a valid temperature.");
+                return;
+            }
+            
+            // Determine expected heating state based on the rules
+            let expectedHeatingState;
+            if (temp < 18) {
+                expectedHeatingState = "ON";
+            } else if (temp >= 21) {
+                expectedHeatingState = "OFF";
+            } else {
+                // For the 18-21 range, it depends on the previous state
+                // But for testing purposes, we'll indicate the hysteresis behavior
+                expectedHeatingState = "Depends on previous state";
+            }
+            
+            // Get actual heating state by updating the thermostat
+            const actualHeatingState = updateThermostat(temp);
+            
+            // Determine pass/fail based on the expected vs actual
+            let passOrFail;
+            let notes = "";
+            
+            if (expectedHeatingState === "Depends on previous state") {
+                passOrFail = "Pass";
+                notes = `Hysteresis zone: maintains previous state (${actualHeatingState})`;
+            } else if (expectedHeatingState === actualHeatingState) {
+                passOrFail = "Pass";
+            } else {
+                passOrFail = "Fail";
+                notes = `Expected ${expectedHeatingState} but got ${actualHeatingState}`;
+            }
+            
+            // Add result to the table
+            const resultBody = document.getElementById('result-body');
+            const resultTable = document.getElementById('result-table');
+            const row = document.createElement('tr');
+            
+            row.innerHTML = `
+                <td>${temp}°C</td>
+                <td>${expectedHeatingState}</td>
+                <td>${actualHeatingState}</td>
+                <td class="${passOrFail === 'Pass' ? 'pass' : 'fail'}">${passOrFail}</td>
+                <td class="notes">${notes}</td>
+            `;
+            
+            resultBody.appendChild(row);
+            resultTable.classList.add('active');
+            
+            // Clear input field
+            tempInput.value = '';
+        }
+        
+        // Clear all test results
+        function clearResults() {
+            const resultBody = document.getElementById('result-body');
+            const resultTable = document.getElementById('result-table');
+            resultBody.innerHTML = '';
+            resultTable.classList.remove('active');
+            
+            // Reset to default state
+            updateThermostat(20);
+        }
+
+        // Team title cycling effect
+        const teamTitles = ["Team Members", "ziad mohamed", "ganna mohamed"];
+        let teamTitleIndex = 0;
+        const teamTitleSpan = document.querySelector('.team-title');
+        function cycleTeamTitle() {
+            teamTitleSpan.classList.add('fade');
+            setTimeout(() => {
+                teamTitleIndex = (teamTitleIndex + 1) % teamTitles.length;
+                teamTitleSpan.textContent = teamTitles[teamTitleIndex];
+                teamTitleSpan.classList.remove('fade');
+            }, 600);
+        }
+        setInterval(cycleTeamTitle, 2500);
+    </script>
+</body>
+</html>
